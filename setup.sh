@@ -55,7 +55,7 @@ cvs co -r V01-00-07 DPGAnalysis/Skims/python/skim_detstatus_cfg.py >> setup.log 
 cvs co -r V01-00-07 DPGAnalysis/Skims/python/skim_detstatus_cfi.py >> setup.log || exit 1
 
 #########################################################################################
-echo "[STATUS] Patch GsfElectrons for ECALELF rereco"
+echo "[STATUS] Patch gedGsfElectrons for ECALELF rereco"
 addpkg DataFormats/EgammaCandidates >> setup.log || exit 1
 sed -i 's|[/]*assert|////assert|' DataFormats/EgammaCandidates/src/GsfElectron.cc 
 
