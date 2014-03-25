@@ -9,7 +9,7 @@ checkVERSION(){
 	CMSSW_5_3_14_patch2)
 	    echo "[INFO] Installing for $CMSSW_VERSION (2012 8TeV)"
 	    ;;
-	CMSSW_7_0_0_*)
+	CMSSW_7_0_*)
 	    echo "[INFO] Installing for $CMSSW_VERSION (2012 8TeV)"
 	    ;;
 	*)
@@ -209,7 +209,7 @@ case $CMSSW_VERSION in
 #        cd EgammaAnalysis/ElectronTools  >> setup.log || exit 1
 #	git checkout EgammaAnalysis-ElectronTools-MD-21Apr2013-test-2 >> setup.log || exit 1
 #        cd - >> setup.log || exit 1
-	patch -p1 < $myDir/ALCARAW_RECO/test/electronRegression700.patch >> setup.log || exit 1
+	patch -p1 < $myDir/ALCARAW_RECO/test/electronRegression700.patch >> setup.log
 
 	cd EgammaAnalysis/ElectronTools/data/ >> setup.log || exit 1
 	cat download.url | grep '.root' | xargs wget  >> setup.log || exit 1
@@ -224,7 +224,7 @@ case $CMSSW_VERSION in
 	mv GBRLikelihoodEGTools/data/*.root $myDir/EleNewEnergiesProducer/data/
 
 	sed -i 's|REGRESSION=3|REGRESSION=4|' Calibration/*/BuildFile.xml
-	echo "<Flags CppDefines=\"CMSSW_7_0_X\"/>" >> EleSelectionProducers/BuildFile.xml
+	echo "<Flags CppDefines=\"CMSSW_7_0_X\"/>" >> $myDir/EleSelectionProducers/BuildFile.xml
 
 	echo "[STATUS] applying patch for CMSSW_5_X and following"
 	sed 's|,eleIt->ecalEnergyError()\*(nearestSC.*);|);|' $myDir/ALCARAW_RECO/src/ElectronRecalibSuperClusterAssociatorSH.cc_topatch > $myDir/ALCARAW_RECO/src/ElectronRecalibSuperClusterAssociatorSH.cc
@@ -247,7 +247,7 @@ esac
 
 
 # compile
-scram b -j8
+scram b -j16
 
 # for file in `find -name '*.url'`; 
 #   do 
