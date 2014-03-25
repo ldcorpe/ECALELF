@@ -646,7 +646,7 @@ elif(options.type=='ALCARECO' or options.type=='ALCARECOSIM'):
         else:
             process.schedule = cms.Schedule(process.pathALCARECOEcalCalZElectron,  process.pathALCARECOEcalCalWElectron,
                                             process.pathALCARECOEcalCalZSCElectron,
-                                            process.ALCARECOoutput_step
+                                            process.ALCARECOoutput_step,
                                             ) # fix the output modules
 
 
