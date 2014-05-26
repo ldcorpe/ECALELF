@@ -18,11 +18,12 @@ addBranch_class::~addBranch_class(void){
    *  \param treename name of the new tree (not important)
    *  \param BranchName invMassSigma or iSMEle (important, define which new branch you want)
    */
-TTree *addBranch_class::AddBranch(TChain* originalChain, TString treename, TString BranchName, bool fastLoop, bool isMC){
+TTree *addBranch_class::AddBranch(TChain* originalChain,TChain* secondChain, TString treename, TString BranchName, bool fastLoop, bool isMC){
   if(BranchName.Contains("invMassSigma")) return AddBranch_invMassSigma(originalChain, treename, BranchName, fastLoop, isMC);
   if(BranchName.CompareTo("iSM")==0)       return AddBranch_iSM(originalChain, treename, BranchName, fastLoop);
   if(BranchName.CompareTo("smearerCat")==0)       return AddBranch_smearerCat(originalChain, treename, isMC);
 
+	if(BranchName.Contains("Map")) return AddBranch_Map(originalChain, secondChain ,treename,BranchName);
   std::cerr << "[ERROR] Request to add branch " << BranchName << " but not defined" << std::endl;
   return NULL;
 }
@@ -475,6 +476,96 @@ TTree *addBranch_class::GetTreeDistIEtaDistiPhi(TChain *tree,  bool fastLoop, in
   return newTree;
 }
 
+
+TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain, TString treename, TString BranchName){
+	TTree *newtree = new TTree(treename,treename);
+	Int_t runNumber1;
+	Int_t runNumber2;
+	Int_t eventNumber1;
+	Int_t eventNumber2;
+	Int_t bestRunNumber;
+	Int_t bestEventNumber;
+	//add pt branches
+	Float_t         phiSCEle1[2];
+	Float_t         etaSCEle1[2];
+	Float_t         phiSCEle2[2];
+	Float_t         etaSCEle2[2];
+	originalChain->SetBranchAddress("runNumber", &runNumber1);
+	originalChain->SetBranchAddress("eventNumber", &eventNumber1);
+	originalChain->SetBranchAddress("etaSCEle", &etaSCEle1);
+	originalChain->SetBranchAddress("phiSCEle", &phiSCEle1);
+	secondChain->SetBranchAddress("runNumber", &runNumber2);
+	secondChain->SetBranchAddress("eventNumber", &eventNumber2);
+	secondChain->SetBranchAddress("etaSCEle", &etaSCEle2);
+	secondChain->SetBranchAddress("phiSCEle", &phiSCEle2);
+
+	newtree->Branch("originalRunNumber",&runNumber1,"originalRunNumber/F");
+	newtree->Branch("bestRunNumber",&bestRunNumber,"bestRunNumber/F");
+
+	for( Int_t heavyLoop =0 ; heavyLoop < originalChain->GetEntries() ; heavyLoop++)
+	{
+		originalChain->GetEntry(heavyLoop);
+
+		Float_t deltaR[2] = {10000, 10000};
+		Float_t deltaRMin[2] = {10000, 10000};
+		bestRunNumber = -1;
+		bestEventNumber = -1;
+
+
+		for (Int_t subLoop =0 ; subLoop < secondChain->GetEntries() ; subLoop++)
+		{
+			secondChain->GetEntry(subLoop);
+
+			deltaR[0]=sqrt((phiSCEle1[0]-phiSCEle1[0])*(phiSCEle1[0]-phiSCEle1[0])+(etaSCEle1[0]-etaSCEle1[0])*(etaSCEle1[0]-etaSCEle1[0]));
+			deltaR[1]=sqrt((phiSCEle1[1]-phiSCEle1[1])*(phiSCEle1[1]-phiSCEle1[1])+(etaSCEle1[1]-etaSCEle1[1])*(etaSCEle1[1]-etaSCEle1[1]));
+
+			if (deltaR[0] < deltaRMin[0] && deltaR[1]<deltaRMin[1])
+			{
+				bestRunNumber=runNumber2;
+				bestEventNumber=runNumber2;
+				deltaRMin[0]=deltaR[0];
+				deltaRMin[1]=deltaR[1];
+			}
+
+			if (deltaR[0] < deltaRMin[1] && deltaR[1]<deltaRMin[0])
+			{
+				bestRunNumber=runNumber2;
+				bestEventNumber=runNumber2;
+				deltaRMin[0]=deltaR[1];
+				deltaRMin[1]=deltaR[0];
+			}
+
+
+			deltaR[0]=sqrt((phiSCEle1[0]-phiSCEle1[1])*(phiSCEle1[0]-phiSCEle1[1])+(etaSCEle1[0]-etaSCEle1[1])*(etaSCEle1[0]-etaSCEle1[1]));
+			deltaR[1]=sqrt((phiSCEle1[1]-phiSCEle1[0])*(phiSCEle1[1]-phiSCEle1[0])+(etaSCEle1[1]-etaSCEle1[0])*(etaSCEle1[1]-etaSCEle1[0]));
+
+			if (deltaR[0] < deltaRMin[0] && deltaR[1]<deltaRMin[1])
+			{
+				bestRunNumber=runNumber2;
+				bestEventNumber=runNumber2;
+				deltaRMin[0]=deltaR[0];
+				deltaRMin[1]=deltaR[1];
+			}
+
+			if (deltaR[0] < deltaRMin[1] && deltaR[1]<deltaRMin[0])
+			{
+				bestRunNumber=runNumber2;
+				bestEventNumber=runNumber2;
+				deltaRMin[0]=deltaR[1];
+				deltaRMin[1]=deltaR[0];
+			}
+
+			if (deltaR[0] >0.1 && deltaR[1] >0.1)
+			{
+
+				bestRunNumber=-1;
+				bestEventNumber=-1;
+			}
+		}
+	}
+	newtree->Fill();
+	return newtree;
+}
 
 
   
