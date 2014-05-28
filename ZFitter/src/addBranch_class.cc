@@ -498,8 +498,8 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 	Int_t eventNo2;
 
 	// Declare limit values of delta eta and phi to call a match
-	Float_t deltaEtaLim=0.01;
-	Float_t deltaPhiLim=0.01;
+	Float_t deltaEtaLim=0.05;
+	Float_t deltaPhiLim=0.05;
 	
 	// Declare vairables to fill in newtree
 	Int_t entryNumber2;
@@ -598,32 +598,52 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 			// Look for matches. Only entries where either the regular match or switched match will pass the following lines. 
 			if ((dEta[0] >deltaEtaLim  || dEta[1] >deltaEtaLim) && (dEtaSwitch[0] >deltaEtaLim || dEtaSwitch[1] >deltaEtaLim)) continue;
 			if ((dPhi[0] >deltaPhiLim  || dPhi[1] >deltaPhiLim) && (dPhiSwitch[0] > deltaPhiLim || dPhiSwitch[1] >deltaPhiLim )) continue;
-	
-			// Match has been found. Now record the entry number from second tree and delete relevant entry in vector
-			secondTreeEntries.erase(subLoop-1);
-			entryNumber2 = *subLoop-1;
-			
+
+
 			// check if regular or inverted match & set correct electron index.
 			if( dEta[0] < deltaEtaLim && dPhi[0] < deltaPhiLim) 
 			{
 				eleIndex[0]=1;
 				eleIndex[1]=2;
-			//	std::cout << "REGULAR" ;
+
+				/*std::cout << heavyLoop << " | " << *subLoop << std::endl;
+				std::cout << "REGULAR" << std::endl;
+				std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
+				std::cout << phiSCEle1[1] << " | " << phiSCEle2[1] << std::endl;
+				std::cout << etaSCEle1[0] << " | " << etaSCEle2[0] << std::endl;
+				std::cout << phiSCEle1[0] << " | " << phiSCEle2[0] << std::endl;*/
 			}
 			else 
 			{
 				eleIndex[0]=2;
 				eleIndex[1]=1;
-			//	std::cout << "Inverted" ;
+				
+				/*std::cout << heavyLoop << " | " << *subLoop << std::endl;
+				std::cout << "Inverted" << endl; ;
+				std::cout << etaSCEle1[1] << " | " << etaSCEle2[0] << std::endl;
+				std::cout << phiSCEle1[1] << " | " << phiSCEle2[0] << std::endl;
+				std::cout << etaSCEle1[0] << " | " << etaSCEle2[1] << std::endl;
+				std::cout << phiSCEle1[0] << " | " << phiSCEle2[1] << std::endl;*/
 			}
-			
+
+			// Match has been found. Now record the entry number from second tree and delete relevant entry in vector
+			entryNumber2 = *subLoop;
+			secondTreeEntries.erase(subLoop);
+
 			// if a match is found, break the loop
 			break;
 		}
-	//	if (entryNumber2==-1)
-	//	{ std::cout << " NO MATCH" ;}
+		// DEBUG output
+		/*if (entryNumber2==-1)
+			{ std::cout << " NO MATCH" << std::endl;
+
+			std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
+			std::cout << phiSCEle1[1] << " | " << phiSCEle2[1] << std::endl;
+			std::cout << etaSCEle1[0] << " | " << etaSCEle2[0] << std::endl;
+			std::cout << phiSCEle1[0] << " | " << phiSCEle2[0] << std::endl;
+			}*/
+
 		// Fill the new tree with relevant branch values.
-	//	std::cout << heavyLoop << "|" << entryNumber2 << std::endl;
 		newtree->Fill();
 
 	}
