@@ -498,8 +498,8 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 	Int_t eventNo2;
 
 	// Declare limit values of delta eta and phi to call a match
-	Float_t deltaEtaLim=0.05;
-	Float_t deltaPhiLim=0.05;
+	Float_t deltaEtaLim=0.1;
+	Float_t deltaPhiLim=0.1;
 	
 	// Declare vairables to fill in newtree
 	Int_t entryNumber2;
@@ -546,7 +546,7 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 	std::cout << "second tree entries vector done" << std::endl;
 
 	// begin main "Heavy" loop over original chain entries
-	for( Long64_t heavyLoop =0 ; heavyLoop < originalChain->GetEntries() ; heavyLoop++)
+	for( Long64_t heavyLoop =0 ; heavyLoop < 10000; heavyLoop++)//originalChain->GetEntries() ; heavyLoop++)
 	{
 		originalChain->GetEntry(heavyLoop);
 
@@ -560,7 +560,7 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 		Float_t dEta[2] = {10000, 10000};
 
 		// progress tracker spits out to screen (useful for large number of events)
-		if(heavyLoop % 10 ==0)
+		if(heavyLoop % 1000 ==0)
 		{
 			std::cout << heavyLoop <<" / "<< originalChain->GetEntries() << std::endl;
 		}
@@ -606,9 +606,9 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 				eleIndex[0]=1;
 				eleIndex[1]=2;
 
-				/*std::cout << heavyLoop << " | " << *subLoop << std::endl;
-				std::cout << "REGULAR" << std::endl;
-				std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
+			//std::cout << heavyLoop << " | " << *subLoop << std::endl;
+			//	std::cout << "REGULAR" << std::endl;
+				/*std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
 				std::cout << phiSCEle1[1] << " | " << phiSCEle2[1] << std::endl;
 				std::cout << etaSCEle1[0] << " | " << etaSCEle2[0] << std::endl;
 				std::cout << phiSCEle1[0] << " | " << phiSCEle2[0] << std::endl;*/
@@ -618,9 +618,9 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 				eleIndex[0]=2;
 				eleIndex[1]=1;
 				
-				/*std::cout << heavyLoop << " | " << *subLoop << std::endl;
-				std::cout << "Inverted" << endl; ;
-				std::cout << etaSCEle1[1] << " | " << etaSCEle2[0] << std::endl;
+				//std::cout << heavyLoop << " | " << *subLoop << std::endl;
+		//		std::cout << "Inverted" << endl; 
+				/*std::cout << etaSCEle1[1] << " | " << etaSCEle2[0] << std::endl;
 				std::cout << phiSCEle1[1] << " | " << phiSCEle2[0] << std::endl;
 				std::cout << etaSCEle1[0] << " | " << etaSCEle2[1] << std::endl;
 				std::cout << phiSCEle1[0] << " | " << phiSCEle2[1] << std::endl;*/
@@ -634,9 +634,9 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 			break;
 		}
 		// DEBUG output
-		/*if (entryNumber2==-1)
-			{ std::cout << " NO MATCH" << std::endl;
-
+	//	if (entryNumber2==-1)
+		//	{ std::cout << " NO MATCH" << std::endl;}
+/*
 			std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
 			std::cout << phiSCEle1[1] << " | " << phiSCEle2[1] << std::endl;
 			std::cout << etaSCEle1[0] << " | " << etaSCEle2[0] << std::endl;
