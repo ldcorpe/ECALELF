@@ -1,5 +1,4 @@
-
-{
+	{
 	TFile *file_Map = TFile::Open("tmp/Map_d1-louieTest.root");
 	TFile *file_70X = TFile::Open("root://eoscms//eos/cms/store/group/alca_ecalcalib/ecalelf/ntuples/8TeV/ALCARECO/DoubleElectron-ZSkim-RUN2012A-15Apr2014-v2/190645-193621/lumi/DoubleElectron-ZSkim-RUN2012A-15Apr2014-v2-190645-193621.root");
 	TFile *file_53X = TFile::Open("root://eoscms//eos/cms/store/group/alca_ecalcalib/ecalelf/ntuples/8TeV/ALCARECO/DoubleElectron-ZSkim-RUN2012A-22Jan-v1/190645-193621/190456-208686-22Jan_v1/GainSwitch_v3/DoubleElectron-ZSkim-RUN2012A-22Jan-v1-190645-193621.root");
@@ -230,13 +229,13 @@
 
 
 
-	TH1F *E_hist = new TH1F("energySCEle","energySCEle (x-y)/x",10000,-1,1);
-	TH1F *R9_hist = new TH1F("R9Ele","R9Ele (x-y)/x",10000,-2,2);
-	TH1F *etaSC_hist = new TH1F("etaSCEle","etaSCEle (x-y)/x",10000,-1,1);
-	TH1F *phiSC_hist = new TH1F("phiSCEle","phiSCEle (x-y)/x",10000,-1,1);
-	TH1F *eta_hist = new TH1F("etaEle","etaEle (x-y)/x",10000,-1,1);
-	TH1F *phi_hist = new TH1F("phiEle","phiEle (x-y)/x",10000,-1,1);
-	TH1F *pModeGsf_hist = new TH1F("pModeGSf","pmode (x-y)/x",10000,-1,1);
+	TH1F *E_hist = new TH1F("energySCEle","energySCEle (_7-_5)/_7",10000,-0.4,0.4);
+	TH1F *R9_hist = new TH1F("R9Ele","R9Ele (_7 - _5)",10000,-0.4,0.4);
+	TH1F *etaSC_hist = new TH1F("etaSCEle","etaSCEle (_7 - _5)",10000,-0.05,0.05);
+	TH1F *phiSC_hist = new TH1F("phiSCEle","phiSCEle (_7 - _5)",10000,-0.05,0.05);
+	TH1F *eta_hist = new TH1F("etaEle","etaEle (_7-_5)",10000,-0.1,0.1);
+	TH1F *phi_hist = new TH1F("phiEle","phiEle (_7-_5)",10000,-0.1,0.1);
+	TH1F *pModeGsf_hist = new TH1F("pModeGSf","pmode (_7-_5)/_7",10000,-0.06,0.06);
 
 	E_hist->Sumw2(); 
 	R9_hist->Sumw2(); 
@@ -251,13 +250,22 @@
 	for(Int_t loop = 0; loop < chain7->GetEntries(); loop++)
 	{
 
+	if (loop%10000==0) { 
+	cout << loop << " / " << chain7->GetEntries() << endl;
+	
+	}
+
+
 		tree_Map->GetEntry(loop);
 		chain7->GetEntry(loop);
-
+		
 		if (entryNumber==-1) continue;
 
 		chain5->GetEntry(entryNumber);
 
+if (entryNumber%10000==0){
+cout << etaEle7[0] << " | "<<etaEle5[0] <<endl;
+cout << etaEle7[1] << " | "<<etaEle5[1] <<endl;}
 
 		selection5=((eleID5[0] & 2)==2)*((eleID5[1] & 2)==2)*(HLTfire5==1)*(recoFlagsEle5[0] > 1)*(recoFlagsEle5[1] > 1)*(PtEle5[0]>20)*(PtEle5[1]>20);
 		total_weight5=1;
@@ -273,16 +281,16 @@
 		{
 			E_hist->Fill((energySCEle7[0]-energySCEle5[0])/energySCEle5[0],selection5);
 			E_hist->Fill((energySCEle7[1]-energySCEle5[1])/energySCEle5[1],selection5);
-			R9_hist->Fill((R9Ele7[0]-R9Ele5[0])/R9Ele5[0],selection5);
-			R9_hist->Fill((R9Ele7[1]-R9Ele5[1])/R9Ele5[1],selection5);
-			etaSC_hist->Fill((etaSCEle7[0]-etaSCEle5[0])/etaSCEle5[0],selection5);
-			etaSC_hist->Fill((etaSCEle7[1]-etaSCEle5[1])/etaSCEle5[1],selection5);
-			phiSC_hist->Fill((phiSCEle7[0]-phiSCEle5[0])/phiSCEle5[0],selection5);
-			phiSC_hist->Fill((phiSCEle7[1]-phiSCEle5[1])/phiSCEle5[1],selection5);
-			eta_hist->Fill((etaEle7[0]-etaEle5[0])/etaEle5[0],selection5);
-			eta_hist->Fill((etaEle7[1]-etaEle5[1])/etaEle5[1],selection5);
-			phi_hist->Fill((phiEle7[0]-phiEle5[0])/phiEle5[0],selection5);
-			phi_hist->Fill((phiEle7[1]-phiEle5[1])/phiEle5[1],selection5);
+			R9_hist->Fill((R9Ele7[0]-R9Ele5[0]),selection5);
+			R9_hist->Fill((R9Ele7[1]-R9Ele5[1]),selection5);
+			etaSC_hist->Fill((etaSCEle7[0]-etaSCEle5[0]),selection5);
+			etaSC_hist->Fill((etaSCEle7[1]-etaSCEle5[1]),selection5);
+			phiSC_hist->Fill((phiSCEle7[0]-phiSCEle5[0]),selection5);
+			phiSC_hist->Fill((phiSCEle7[1]-phiSCEle5[1]),selection5);
+			eta_hist->Fill((etaEle7[0]-etaEle5[0]),selection5);
+			eta_hist->Fill((etaEle7[1]-etaEle5[1]),selection5);
+			phi_hist->Fill((phiEle7[0]-phiEle5[0]),selection5);
+			phi_hist->Fill((phiEle7[1]-phiEle5[1]),selection5);
 			pModeGsf_hist->Fill((pModeGsfEle7[0]-pModeGsfEle5[0])/pModeGsfEle5[0],selection5);
 			pModeGsf_hist->Fill((pModeGsfEle7[1]-pModeGsfEle5[1])/pModeGsfEle5[1],selection5);
 		}
@@ -291,16 +299,16 @@
 		{
 			E_hist->Fill((energySCEle7[1]-energySCEle5[0])/energySCEle5[0],selection5);
 			E_hist->Fill((energySCEle7[0]-energySCEle5[1])/energySCEle5[1],selection5);
-			R9_hist->Fill((R9Ele7[1]-R9Ele5[0])/R9Ele5[0],selection5);
-			R9_hist->Fill((R9Ele7[0]-R9Ele5[1])/R9Ele5[1],selection5);
-			etaSC_hist->Fill((etaSCEle7[1]-etaSCEle5[0])/etaSCEle5[0],selection5);
-			etaSC_hist->Fill((etaSCEle7[0]-etaSCEle5[1])/etaSCEle5[1],selection5);
-			phiSC_hist->Fill((phiSCEle7[1]-phiSCEle5[0])/phiSCEle5[0],selection5);
-			phiSC_hist->Fill((phiSCEle7[0]-phiSCEle5[1])/phiSCEle5[1],selection5);
-			eta_hist->Fill((etaEle7[1]-etaEle5[0])/etaEle5[0],selection5);
-			eta_hist->Fill((etaEle7[0]-etaEle5[1])/etaEle5[1],selection5);
-			phi_hist->Fill((phiEle7[1]-phiEle5[0])/phiEle5[0],selection5);
-			phi_hist->Fill((phiEle7[0]-phiEle5[1])/phiEle5[1],selection5);
+			R9_hist->Fill((R9Ele7[1]-R9Ele5[0]),selection5);
+			R9_hist->Fill((R9Ele7[0]-R9Ele5[1]),selection5);
+			etaSC_hist->Fill((etaSCEle7[1]-etaSCEle5[0]),selection5);
+			etaSC_hist->Fill((etaSCEle7[0]-etaSCEle5[1]),selection5);
+			phiSC_hist->Fill((phiSCEle7[1]-phiSCEle5[0]),selection5);
+			phiSC_hist->Fill((phiSCEle7[0]-phiSCEle5[1]),selection5);
+			eta_hist->Fill((etaEle7[1]-etaEle5[0]),selection5);
+			eta_hist->Fill((etaEle7[0]-etaEle5[1]),selection5);
+			phi_hist->Fill((phiEle7[1]-phiEle5[0]),selection5);
+			phi_hist->Fill((phiEle7[0]-phiEle5[1]),selection5);
 			pModeGsf_hist->Fill((pModeGsfEle7[1]-pModeGsfEle5[0])/pModeGsfEle5[0],selection5);
 			pModeGsf_hist->Fill((pModeGsfEle7[0]-pModeGsfEle5[1])/pModeGsfEle5[1],selection5);
 		}
@@ -321,4 +329,6 @@
 	t->SaveAs("selectionPlots/pModeGsf.pdf");
 	R9_hist->Draw();
 	t->SaveAs("selectionPlots/R9.pdf");
+
+	return 0;
 }

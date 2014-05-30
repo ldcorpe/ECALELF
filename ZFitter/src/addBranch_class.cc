@@ -1,4 +1,5 @@
 #include "../interface/addBranch_class.hh"
+#include "event_class.cc"
 #include "../interface/ElectronCategory_class.hh"
 #include <TTreeFormula.h>
 #include <TLorentzVector.h>
@@ -486,7 +487,7 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 {
 	TTree *newtree = new TTree(treename,treename);
 
-  // Declare variables to be extracted from the trees
+	// Declare variables to be extracted from the trees
 	Int_t runNumber1=-1;
 	Int_t runNumber2=-1;
 	Int_t eventNumber1=-1;
@@ -495,12 +496,16 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 	Float_t         etaSCEle1[2];
 	Float_t         phiSCEle2[2];
 	Float_t         etaSCEle2[2];
+	Float_t dEtaSwitch[2] = {10000, 10000};
+	Float_t dPhiSwitch[2] = {10000, 10000};
+	Float_t dPhi[2] = {10000, 10000};
+	Float_t dEta[2] = {10000, 10000};
 	Int_t eventNo2;
 
 	// Declare limit values of delta eta and phi to call a match
-	Float_t deltaEtaLim=0.1;
-	Float_t deltaPhiLim=0.1;
-	
+	Float_t deltaEtaLim=0.05;
+	Float_t deltaPhiLim=0.05;
+
 	// Declare vairables to fill in newtree
 	Int_t entryNumber2;
 	Int_t eleIndex[2];
@@ -535,18 +540,20 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 	newtree->Branch("eleIndex",&eleIndex,"eleIndex[2]/I");
 
 	// declare vector used to store positions of possible matches in second tree
-	std::vector<Long64_t> secondTreeEntries;
+	std::multimap<event_class, Long64_t> myMap;
 
 	// Fill this vector with all possible psoitions
 	for (Long64_t j=0 ; j<secondChain->GetEntries() ; j++)
 	{
-		secondTreeEntries.push_back(j);
+		secondChain->GetEntry(j);
+		event_class event(runNumber2,eventNo2);
+		myMap.insert(std::pair<event_class,Long64_t>(event,j));
 	}
 
 	std::cout << "second tree entries vector done" << std::endl;
 
 	// begin main "Heavy" loop over original chain entries
-	for( Long64_t heavyLoop =0 ; heavyLoop < 10000; heavyLoop++)//originalChain->GetEntries() ; heavyLoop++)
+	for( Long64_t heavyLoop =0 ; heavyLoop < originalChain->GetEntries() ; heavyLoop++)
 	{
 		originalChain->GetEntry(heavyLoop);
 
@@ -554,11 +561,6 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 		entryNumber2=-1;// will remain -1 unless match is found
 		eleIndex[0]=-1;
 		eleIndex[1]=-1;
-		Float_t dEtaSwitch[2] = {10000, 10000};
-		Float_t dPhiSwitch[2] = {10000, 10000};
-		Float_t dPhi[2] = {10000, 10000};
-		Float_t dEta[2] = {10000, 10000};
-
 		// progress tracker spits out to screen (useful for large number of events)
 		if(heavyLoop % 1000 ==0)
 		{
@@ -566,19 +568,30 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 		}
 
 		// Begin subloop over second tree events. Loops over remaining available positions in second tree (using iterator)
-		for (std::vector<Long64_t>::iterator subLoop = secondTreeEntries.begin() ; subLoop < secondTreeEntries.end()+1 ; subLoop++)
+
+		event_class event1(runNumber1,eventNumber1);
+		std::pair <std::multimap<event_class,Long64_t>::iterator, std::multimap<event_class,Long64_t>::iterator> range;
+		range = myMap.equal_range(event1);
+
+		std::cout << heavyLoop<< " - run: " << runNumber1 << "event: "<<eventNumber1 << std::endl; 
+	std::cout << "heavyLoop: " <<  myMap.count(event1) <<" potential matches" <<std::endl;
+
+		for (std::multimap<event_class, Long64_t>::iterator subLoop=range.first; subLoop !=range.second ; subLoop++)
 		{
-			secondChain->GetEntry(*subLoop);
+			secondChain->GetEntry(subLoop->second);
+
+		//	std::cout << runNumber1 << " | "<<eventNumber1 <<std::endl;
+			//std::cout << runNumber2 << " | "<<eventNo2 <<std::endl;
 
 			// DEBUG
-		/*	std::cout << "Loopers" << heavyLoop << "|" <<*subLoop << std::endl;
-			std::cout << eventNo2 << std::endl;
-			std::cout << eventNumber1 << " | " << eventNo2 << std::endl;
-			std::cout << runNumber1 << " | " << runNumber2 << std::endl;
-			std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
-			std::cout << phiSCEle1[1] << " | " << phiSCEle2[1] << std::endl;
-			std::cout << etaSCEle1[0] << " | " << etaSCEle2[0] << std::endl;
-			std::cout << phiSCEle1[0] << " | " << phiSCEle2[0] << std::endl;*/
+			/*	std::cout << "Loopers" << heavyLoop << "|" <<*subLoop << std::endl;
+					std::cout << eventNo2 << std::endl;
+					std::cout << eventNumber1 << " | " << eventNo2 << std::endl;
+					std::cout << runNumber1 << " | " << runNumber2 << std::endl;
+					std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
+					std::cout << phiSCEle1[1] << " | " << phiSCEle2[1] << std::endl;
+					std::cout << etaSCEle1[0] << " | " << etaSCEle2[0] << std::endl;
+					std::cout << phiSCEle1[0] << " | " << phiSCEle2[0] << std::endl;*/
 
 
 			if(runNumber1!=runNumber2) continue;
@@ -595,6 +608,12 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 			dEtaSwitch[0]=(etaSCEle1[0]-etaSCEle2[1]);
 			dEtaSwitch[1]=(etaSCEle1[1]-etaSCEle2[0]);
 
+			//	std::cout << heavyLoop << " | " << subLoop->second << std::endl;
+			//	std::cout << "REGULAR" << std::endl;
+			/*	std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
+					std::cout << phiSCEle1[1] << " | " << phiSCEle2[1] << std::endl;
+					std::cout << etaSCEle1[0] << " | " << etaSCEle2[0] << std::endl;
+					std::cout << phiSCEle1[0] << " | " << phiSCEle2[0] << std::endl;*/
 			// Look for matches. Only entries where either the regular match or switched match will pass the following lines. 
 			if ((dEta[0] >deltaEtaLim  || dEta[1] >deltaEtaLim) && (dEtaSwitch[0] >deltaEtaLim || dEtaSwitch[1] >deltaEtaLim)) continue;
 			if ((dPhi[0] >deltaPhiLim  || dPhi[1] >deltaPhiLim) && (dPhiSwitch[0] > deltaPhiLim || dPhiSwitch[1] >deltaPhiLim )) continue;
@@ -606,49 +625,49 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 				eleIndex[0]=1;
 				eleIndex[1]=2;
 
-			//std::cout << heavyLoop << " | " << *subLoop << std::endl;
-			//	std::cout << "REGULAR" << std::endl;
-				/*std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
-				std::cout << phiSCEle1[1] << " | " << phiSCEle2[1] << std::endl;
-				std::cout << etaSCEle1[0] << " | " << etaSCEle2[0] << std::endl;
-				std::cout << phiSCEle1[0] << " | " << phiSCEle2[0] << std::endl;*/
+				//			std::cout << heavyLoop << " | " << subLoop->second << std::endl;
+				std::cout << "REGULAR" << std::endl;
+				/*				std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
+									std::cout << phiSCEle1[1] << " | " << phiSCEle2[1] << std::endl;
+									std::cout << etaSCEle1[0] << " | " << etaSCEle2[0] << std::endl;
+									std::cout << phiSCEle1[0] << " | " << phiSCEle2[0] << std::endl;*/
 			}
 			else 
 			{
 				eleIndex[0]=2;
 				eleIndex[1]=1;
-				
+
 				//std::cout << heavyLoop << " | " << *subLoop << std::endl;
-		//		std::cout << "Inverted" << endl; 
+				//				std::cout << "Inverted" << endl; 
 				/*std::cout << etaSCEle1[1] << " | " << etaSCEle2[0] << std::endl;
-				std::cout << phiSCEle1[1] << " | " << phiSCEle2[0] << std::endl;
-				std::cout << etaSCEle1[0] << " | " << etaSCEle2[1] << std::endl;
-				std::cout << phiSCEle1[0] << " | " << phiSCEle2[1] << std::endl;*/
+					std::cout << phiSCEle1[1] << " | " << phiSCEle2[0] << std::endl;
+					std::cout << etaSCEle1[0] << " | " << etaSCEle2[1] << std::endl;
+					std::cout << phiSCEle1[0] << " | " << phiSCEle2[1] << std::endl;*/
 			}
 
 			// Match has been found. Now record the entry number from second tree and delete relevant entry in vector
-			entryNumber2 = *subLoop;
-			secondTreeEntries.erase(subLoop);
-
+			entryNumber2 = subLoop->second;
+			myMap.erase(subLoop);
+			std::cout << "MATCH ENTRY : " << heavyLoop << " "<< entryNumber2 << std:: endl;
 			// if a match is found, break the loop
 			break;
 		}
 		// DEBUG output
-	//	if (entryNumber2==-1)
-		//	{ std::cout << " NO MATCH" << std::endl;}
-/*
-			std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
-			std::cout << phiSCEle1[1] << " | " << phiSCEle2[1] << std::endl;
-			std::cout << etaSCEle1[0] << " | " << etaSCEle2[0] << std::endl;
-			std::cout << phiSCEle1[0] << " | " << phiSCEle2[0] << std::endl;
-			}*/
+		if (entryNumber2==-1)
+		{ std::cout << " NO MATCH" << std::endl;}
+		/*
+			 std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
+			 std::cout << phiSCEle1[1] << " | " << phiSCEle2[1] << std::endl;
+			 std::cout << etaSCEle1[0] << " | " << etaSCEle2[0] << std::endl;
+			 std::cout << phiSCEle1[0] << " | " << phiSCEle2[0] << std::endl;
+			 }*/
 
 		// Fill the new tree with relevant branch values.
 		newtree->Fill();
 
-	}
+}
 
-	return newtree;
+return newtree;
 }
 
 
