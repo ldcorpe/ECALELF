@@ -6,6 +6,7 @@ ROOT_INCLUDE=`root-config --incdir`
 
 # Boost
 BOOST = /afs/cern.ch/cms/slc5_amd64_gcc434/external/boost/1.47.0
+BOOST = /afs/cern.ch/cms/$(SCRAM_ARCH)/external/boost/1.51.0
 #BOOST=/afs/cern.ch/cms/slc5_amd64_gcc472/external/boost/1.50.0
 SCRAMTOOL=$(shell scram || echo 1)
 ifeq ($(SCRAMTOOL),1)

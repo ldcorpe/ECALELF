@@ -3,9 +3,13 @@
 #include "../interface/ElectronCategory_class.hh"
 #include <TTreeFormula.h>
 #include <TLorentzVector.h>
+#include "TCanvas.h"
+#include "TH1.h"
+#include "TH2.h"
 #include "../../../DataFormats/Math/interface/deltaPhi.h"
 #include <iostream> 
 
+#include "TROOT.h"
 //#define DEBUG
 //#define NOFRIEND
 
@@ -501,14 +505,20 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 	Float_t dPhi[2] = {10000, 10000};
 	Float_t dEta[2] = {10000, 10000};
 	Int_t eventNo2;
+	Float_t PtEle1[2];
+	Float_t PtEle2[2];
 
 	// Declare limit values of delta eta and phi to call a match
-	Float_t deltaEtaLim=0.05;
-	Float_t deltaPhiLim=0.05;
+	Float_t deltaEtaLim=0.3;
+	Float_t deltaPhiLim=0.3;
 
 	// Declare vairables to fill in newtree
 	Int_t entryNumber2;
 	Int_t eleIndex[2];
+	Int_t counter=0;
+	Int_t counter_reg=0;
+	Int_t counter_inv=0;
+	Int_t counter_flop=0;
 
 	// Set Status of all branches to 0, and then only set those used to 1
 	originalChain->SetBranchStatus("*",0);
@@ -518,10 +528,12 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 	originalChain->SetBranchStatus("eventNumber", 1);
 	originalChain->SetBranchStatus("etaSCEle", 1);
 	originalChain->SetBranchStatus("phiSCEle", 1);
+	originalChain->SetBranchStatus("PtEle", 1);
 	secondChain->SetBranchStatus("runNumber", 1);
 	secondChain->SetBranchStatus("eventNumber", 1);
 	secondChain->SetBranchStatus("etaSCEle", 1);
 	secondChain->SetBranchStatus("phiSCEle", 1);
+	secondChain->SetBranchStatus("PtEle", 1);
 
 	// Set Branch Addresses
 	originalChain->SetBranchAddress("runNumber", &runNumber1);
@@ -532,12 +544,18 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 	secondChain->SetBranchAddress("etaSCEle", &etaSCEle2);
 	originalChain->SetBranchAddress("phiSCEle", &phiSCEle1);
 	secondChain->SetBranchAddress("phiSCEle", &phiSCEle2);
+	originalChain->SetBranchAddress("PtEle", &PtEle1);
+	secondChain->SetBranchAddress("PtEle", &PtEle2);
 
 	std::cout << "branch addresses set" << std::endl;
 
 	// Declare branches for new tree
 	newtree->Branch("entryNumber2",&entryNumber2,"entryNumber2/I");
 	newtree->Branch("eleIndex",&eleIndex,"eleIndex[2]/I");
+
+	// Debug Histograms
+	TH2F *debug_spatial = new TH2F("spatial","spatial",50,-2.5,2.5,32,-3.2,3.2);
+	TH1F *debug_pT = new TH1F("pT","pT",100,-100,100);
 
 	// declare vector used to store positions of possible matches in second tree
 	std::multimap<event_class, Long64_t> myMap;
@@ -553,7 +571,11 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 	std::cout << "second tree entries vector done" << std::endl;
 
 	// begin main "Heavy" loop over original chain entries
-	for( Long64_t heavyLoop =0 ; heavyLoop < originalChain->GetEntries() ; heavyLoop++)
+	for( Long64_t heavyLoop =0 ; heavyLoop < 
+
+			originalChain->GetEntries()
+
+			; heavyLoop++)
 	{
 		originalChain->GetEntry(heavyLoop);
 
@@ -562,9 +584,10 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 		eleIndex[0]=-1;
 		eleIndex[1]=-1;
 		// progress tracker spits out to screen (useful for large number of events)
-		if(heavyLoop % 1000 ==0)
+		if(heavyLoop % 10000 ==0)
 		{
-			std::cout << heavyLoop <<" / "<< originalChain->GetEntries() << std::endl;
+			std::cout << std::endl << heavyLoop <<" / "<< originalChain->GetEntries() << std::endl;
+			std::cout << heavyLoop <<" / "<< myMap.size()<< std::endl;
 		}
 
 		// Begin subloop over second tree events. Loops over remaining available positions in second tree (using iterator)
@@ -573,72 +596,82 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 		std::pair <std::multimap<event_class,Long64_t>::iterator, std::multimap<event_class,Long64_t>::iterator> range;
 		range = myMap.equal_range(event1);
 
-		std::cout << heavyLoop<< " - run: " << runNumber1 << "event: "<<eventNumber1 << std::endl; 
-	std::cout << "heavyLoop: " <<  myMap.count(event1) <<" potential matches" <<std::endl;
+		//	std::cout << heavyLoop<< " - run: " << runNumber1 << "event: "<<eventNumber1 << std::endl; 
+		//	std::cout << "heavyLoop: " <<  myMap.count(event1) <<" potential matches" <<std::endl;
 
 		for (std::multimap<event_class, Long64_t>::iterator subLoop=range.first; subLoop !=range.second ; subLoop++)
 		{
 			secondChain->GetEntry(subLoop->second);
+			if(PtEle2[0]==0 || PtEle2[1]==0) { counter++ ;continue;}
 
-		//	std::cout << runNumber1 << " | "<<eventNumber1 <<std::endl;
-			//std::cout << runNumber2 << " | "<<eventNo2 <<std::endl;
 
 			// DEBUG
-			/*	std::cout << "Loopers" << heavyLoop << "|" <<*subLoop << std::endl;
-					std::cout << eventNo2 << std::endl;
-					std::cout << eventNumber1 << " | " << eventNo2 << std::endl;
-					std::cout << runNumber1 << " | " << runNumber2 << std::endl;
-					std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
-					std::cout << phiSCEle1[1] << " | " << phiSCEle2[1] << std::endl;
-					std::cout << etaSCEle1[0] << " | " << etaSCEle2[0] << std::endl;
-					std::cout << phiSCEle1[0] << " | " << phiSCEle2[0] << std::endl;*/
+			/*		std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
+						std::cout << phiSCEle1[1] << " | " << phiSCEle2[1] << std::endl;
+						std::cout << etaSCEle1[0] << " | " << etaSCEle2[0] << std::endl;
+						std::cout << phiSCEle1[0] << " | " << phiSCEle2[0] << std::endl;
+
+						std::cout <<"pT "<< PtEle1[0] << " | " << PtEle2[0] << std::endl;
+						std::cout <<"pT "<< PtEle1[1] << " | " << PtEle2[1] << std::endl;*/
 
 
-			if(runNumber1!=runNumber2) continue;
-			if(eventNumber1!=eventNo2) continue;
+			//	if(runNumber1!=runNumber2) continue;
+			//	if(eventNumber1!=eventNo2) continue;
 
 			// Calculate dEta and dPhi, but also switching around electron 1 and 2 in each entry.
 			dPhi[0]=fabs(deltaPhi(phiSCEle1[0],phiSCEle2[0]));
-			dPhi[1]=fabs(deltaPhi(phiSCEle1[1],phiSCEle2[1]));
 			dEta[0]=fabs((etaSCEle1[0]-etaSCEle2[0]));
 			dEta[1]=fabs((etaSCEle1[1]-etaSCEle2[1]));
+			dPhi[1]=fabs(deltaPhi(phiSCEle1[1],phiSCEle2[1]));
+
 
 			dPhiSwitch[0]=fabs(deltaPhi(phiSCEle1[0],phiSCEle2[1])); // switched versions
 			dPhiSwitch[1]=fabs(deltaPhi(phiSCEle1[1],phiSCEle2[0]));
-			dEtaSwitch[0]=(etaSCEle1[0]-etaSCEle2[1]);
-			dEtaSwitch[1]=(etaSCEle1[1]-etaSCEle2[0]);
+			dEtaSwitch[0]=fabs(etaSCEle1[0]-etaSCEle2[1]);
+			dEtaSwitch[1]=fabs(etaSCEle1[1]-etaSCEle2[0]);
 
 			//	std::cout << heavyLoop << " | " << subLoop->second << std::endl;
-			//	std::cout << "REGULAR" << std::endl;
 			/*	std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
 					std::cout << phiSCEle1[1] << " | " << phiSCEle2[1] << std::endl;
 					std::cout << etaSCEle1[0] << " | " << etaSCEle2[0] << std::endl;
 					std::cout << phiSCEle1[0] << " | " << phiSCEle2[0] << std::endl;*/
-			// Look for matches. Only entries where either the regular match or switched match will pass the following lines. 
-			if ((dEta[0] >deltaEtaLim  || dEta[1] >deltaEtaLim) && (dEtaSwitch[0] >deltaEtaLim || dEtaSwitch[1] >deltaEtaLim)) continue;
-			if ((dPhi[0] >deltaPhiLim  || dPhi[1] >deltaPhiLim) && (dPhiSwitch[0] > deltaPhiLim || dPhiSwitch[1] >deltaPhiLim )) continue;
+			// Look for matches. Only entries where either the regular match or switched match will pass the following lines.
+
+
+			//	if ((dEta[0] >deltaEtaLim  || dEta[1] >deltaEtaLim) && (dEtaSwitch[0] >deltaEtaLim || dEtaSwitch[1] >deltaEtaLim)) continue;
+			//		if ((dPhi[0] >deltaPhiLim  || dPhi[1] >deltaPhiLim) && (dPhiSwitch[0] > deltaPhiLim || dPhiSwitch[1] >deltaPhiLim )) continue;
 
 
 			// check if regular or inverted match & set correct electron index.
-			if( dEta[0] < deltaEtaLim && dPhi[0] < deltaPhiLim) 
+			if( dEta[0] < deltaEtaLim && dPhi[0] < deltaPhiLim && dEta[1] < deltaEtaLim && dPhi[1] < deltaPhiLim) 
 			{
 				eleIndex[0]=1;
 				eleIndex[1]=2;
+				entryNumber2 = subLoop->second;
+				counter_reg++;
+				myMap.erase(subLoop);
+				break;
 
 				//			std::cout << heavyLoop << " | " << subLoop->second << std::endl;
-				std::cout << "REGULAR" << std::endl;
+				//	std::cout << "REGULAR " << heavyLoop<< std::endl;
 				/*				std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
 									std::cout << phiSCEle1[1] << " | " << phiSCEle2[1] << std::endl;
 									std::cout << etaSCEle1[0] << " | " << etaSCEle2[0] << std::endl;
 									std::cout << phiSCEle1[0] << " | " << phiSCEle2[0] << std::endl;*/
 			}
-			else 
+
+
+			if( dEtaSwitch[0] < deltaEtaLim && dPhiSwitch[0] < deltaPhiLim && dEtaSwitch[1] < deltaEtaLim && dPhiSwitch[1] < deltaPhiLim) 
 			{
 				eleIndex[0]=2;
 				eleIndex[1]=1;
 
+				entryNumber2 = subLoop->second;
+				counter_inv++;
+				myMap.erase(subLoop);
+				break;
 				//std::cout << heavyLoop << " | " << *subLoop << std::endl;
-				//				std::cout << "Inverted" << endl; 
+				//std::cout << "Inverted "<<heavyLoop << endl; 
 				/*std::cout << etaSCEle1[1] << " | " << etaSCEle2[0] << std::endl;
 					std::cout << phiSCEle1[1] << " | " << phiSCEle2[0] << std::endl;
 					std::cout << etaSCEle1[0] << " | " << etaSCEle2[1] << std::endl;
@@ -646,28 +679,82 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 			}
 
 			// Match has been found. Now record the entry number from second tree and delete relevant entry in vector
-			entryNumber2 = subLoop->second;
-			myMap.erase(subLoop);
-			std::cout << "MATCH ENTRY : " << heavyLoop << " "<< entryNumber2 << std:: endl;
+			//		std::cout << "MATCH ENTRY : " << heavyLoop << " "<< entryNumber2 << std:: endl;
 			// if a match is found, break the loop
-			break;
+
+			//	entryNumber2 = subLoop->second;
+			//	break;
+			counter_flop++;
 		}
 		// DEBUG output
 		if (entryNumber2==-1)
-		{ std::cout << " NO MATCH" << std::endl;}
-		/*
-			 std::cout << etaSCEle1[1] << " | " << etaSCEle2[1] << std::endl;
-			 std::cout << phiSCEle1[1] << " | " << phiSCEle2[1] << std::endl;
-			 std::cout << etaSCEle1[0] << " | " << etaSCEle2[0] << std::endl;
-			 std::cout << phiSCEle1[0] << " | " << phiSCEle2[0] << std::endl;
-			 }*/
+		{
+			//	std::cout << "Pt : " <<PtEle1[0] << " " <<PtEle1[1] << std::endl;
+			//	std::cout << "Eta: " <<etaSCEle1[0] << " " <<etaSCEle1[1] << std::endl;
+			//	std::cout << "Phi: " <<phiSCEle1[0] << " " <<phiSCEle1[1] <<std::endl <<std::endl;
+			//	if (fabs(etaSCEle1[0])<2 && fabs(etaSCEle1[1])<2)
+			/*		{
+						debug_spatial->Fill(etaSCEle1[0],phiSCEle1[0]);
+						debug_spatial->Fill(etaSCEle1[1],phiSCEle1[1]);
+						debug_pT->Fill(PtEle1[0]);
+						debug_pT->Fill(PtEle1[1]);
+						}*/
+			/*	std::cout << std::endl << eventNumber1 <<" | "<< runNumber1 << std::endl;
+					std::cout << "Candidates" << std::endl;
+
+
+					int buffer=0;
+					for (int debugLoop =0; debugLoop<secondChain->GetEntries() ; debugLoop++)
+					{
+					secondChain->GetEntry(debugLoop);
+
+					if(runNumber1!=runNumber2) continue;
+			//	if(eventNumber1!=eventNo2) continue;
+
+			if (buffer!=eventNo2)
+			{
+			std::cout << eventNo2  << " | " << runNumber2 << endl;
+			}
+			buffer =eventNo2;
+			dPhi[0]=fabs(deltaPhi(phiSCEle1[0],phiSCEle2[0]));
+			dPhi[1]=fabs(deltaPhi(phiSCEle1[1],phiSCEle2[1]));
+			dEta[0]=fabs((etaSCEle1[0]-etaSCEle2[0]));
+			dEta[1]=fabs((etaSCEle1[1]-etaSCEle2[1]));
+
+			dPhiSwitch[0]=fabs(deltaPhi(phiSCEle1[0],phiSCEle2[1])); // switched versions
+			dPhiSwitch[1]=fabs(deltaPhi(phiSCEle1[1],phiSCEle2[0]));
+			dEtaSwitch[0]=fabs((etaSCEle1[0]-etaSCEle2[1]));
+			dEtaSwitch[1]=fabs((etaSCEle1[1]-etaSCEle2[0]));
+
+
+			//		if ((dEta[0] >0.05  || dEta[1] > 0.05) && (dEtaSwitch[0] > 0.05 || dEtaSwitch[1] > 0.05)) continue;
+			//		if ((dPhi[0] >0.05  || dPhi[1] > 0.05) && (dPhiSwitch[0] > 0.05 || dPhiSwitch[1] > 0.05)) continue;
+
+			//		std::cout << phiSCEle2[0] << " | " << etaSCEle2[0] << std::endl;
+			//		std::cout << phiSCEle2[1] << " | " << etaSCEle2[1] << std::endl << std::endl;
+
+
+			}*/
+		}
 
 		// Fill the new tree with relevant branch values.
 		newtree->Fill();
 
-}
+	}
+	std::cout << "Filled" << std::endl;
 
-return newtree;
+	gROOT->SetBatch(kFALSE);
+	TCanvas *debug_t = new TCanvas("debug_t","debug_t",800,400);
+	debug_spatial->Draw("COLZ");
+	debug_t->SaveAs(BranchName+"spatial.pdf");
+	debug_pT->Draw();
+	debug_t->SaveAs(BranchName+"pT.pdf");
+	std::cout << counter << std::endl;
+	std::cout << counter_reg << std::endl;
+	std::cout << counter_inv << std::endl;
+	std::cout << counter_flop << std::endl;
+
+	return newtree;
 }
 
 

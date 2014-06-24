@@ -812,9 +812,9 @@ int main(int argc, char **argv) {
 				TChain *ch2 = (tag_chain_itr->second.find("selected"))->second;
 				newTree = newBrancher.AddBranch(ch,ch2,treeName, branchName,true,tag_chain_itr->first.Contains("s"));
 			}
-			else{
+		else{
 				newTree = newBrancher.AddBranch(ch,ch,treeName, branchName,true,tag_chain_itr->first.Contains("s"));
-			}
+		}
 
 			if(newTree==NULL){
 				std::cerr << "[ERROR] New tree for branch " << treeName << " is NULL" << std::endl;
@@ -830,6 +830,7 @@ int main(int argc, char **argv) {
 			newTree->SetTitle(tag_chain_itr->first);
 			newTree->Write();
 			delete newTree;
+			std::cout << "ok" << std::endl;
 			//f.Write();
 			f.Close();
 			std::pair<TString, TChain* > pair_tmp(treeName, new TChain(treeName));
@@ -993,6 +994,15 @@ int main(int argc, char **argv) {
 		data= (tagChainMap["d"])["selected"];
 		mc  = (tagChainMap["s"])["selected"];
 	}
+
+/*if(*branchList.begin()=="Map")
+{
+TTree	*newTreeMap = newBrancher.AddBranch(data,mc,"Louie","Map",true,true);
+newTreeMap->SetTitle("Map.root");
+newTreeMap->Write();
+}*/
+
+
 	ZFit_class fitter( data, mc, NULL, 
 			invMass_var.c_str(), invMass_min, invMass_max, invMass_binWidth); 
 

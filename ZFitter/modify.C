@@ -30,8 +30,8 @@
 	{
 
 	//cout << R << endl;
-		selected->GetEntry(heavyLoop);
-		if(R->Uniform() >0.9)
+		selected->GetEntry(111-heavyLoop);
+		if(R->Uniform() <0)
 		{
 			cout << "Switch electrons " << heavyLoop << endl;
 
@@ -49,14 +49,19 @@ else
 }
 
 
+		
 		if(R->Uniform() >0.9)
 		{
 			cout << "modify energy " <<heavyLoop << endl;
 
-		etaSCEle3[0]= etaSCEle3[0]*(0.5+R->Uniform());
-		etaSCEle3[1]= etaSCEle3[1]*(0.5+R->Uniform());
-		phiSCEle3[0]= phiSCEle3[0]*(0.5+R->Uniform());
-		phiSCEle3[1]= phiSCEle3[1]*(0.5*R->Uniform());
+		etaSCEle3[0]= (etaSCEle3[0])*(1+0.1*(R->Uniform()-0.5));
+		etaSCEle3[1]= (etaSCEle3[1])*(1+0.1*(R->Uniform()-0.5));
+		phiSCEle3[0]= (phiSCEle3[0])*(1+0.1*(R->Uniform()-0.5));
+		phiSCEle3[1]= (phiSCEle3[1])*(1+0.1*(R->Uniform()-0.5));
+
+	/*	cout << etaSCEle2[0] << " | " << etaSCEle2[1] << " | " << phiSCEle2[0] << " | " << phiSCEle2[1] << endl; 
+		cout << etaSCEle3[0] << " | " << etaSCEle3[1] << " | " << phiSCEle3[0] << " | " << phiSCEle3[1] << endl;*/
+		cout << 100*(etaSCEle2[0] - etaSCEle3[0])/etaSCEle2[0] << " | " << 100*(etaSCEle2[1] - etaSCEle3[1])/etaSCEle2[1] << " | " << 100*(phiSCEle2[0] - phiSCEle3[0])/phiSCEle2[0] << " | " << 100*(phiSCEle2[1] - phiSCEle3[1])/phiSCEle2[1] << std::endl;
 		}
 else
 {
