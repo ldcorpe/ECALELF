@@ -55,7 +55,7 @@ if [ -e "${UI_WORKING_DIR}/res/merged" ];then
 fi
 ### taking the output directory (also possible directly from the crab.cfg file
 
-USER_REMOTE_DIR=`grep '^user_remote_dir=' ${UI_WORKING_DIR}/share/crab.cfg |cut -d '=' -f 2` 
+USER_REMOTE_DIR=`grep '^user_remote_dir=' ${UI_WORKING_DIR}/share/crab.cfg |cut -d '=' -f 2`
 STORAGE_PATH=`grep 'storage_path=' ${UI_WORKING_DIR}/share/crab.cfg  |cut -d '=' -f 2`
 echo "RUNRANGE=${RUNRANGE:=`grep 'runselection=' ${UI_WORKING_DIR}/share/crab.cfg  |cut -d '=' -f 2`}"
 if [ -z "$RUNRANGE" ];then 
@@ -78,7 +78,7 @@ case ${USER_REMOTE_DIR} in
 	;;
     *)
 	if [ -z "${MERGED_REMOTE_DIR}" ];then
-	    echo "[ERROR] Unmerged files not in UNMERGED subdir: ${USER_REMOTE_DIR}" >> /dev/stderr
+	    echo "[ERROR] Unmerged files not in UNMERGED subdir: ${MERGED_REMOTE_DIR} $STORAGE_PATH ${USER_REMOTE_DIR}" >> /dev/stderr
 	    exit 1
 	fi
 	;;

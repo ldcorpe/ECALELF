@@ -129,7 +129,7 @@ setUserRemoteDirNtuple(){
 	echo "                       ${ENERGY} or ${TAG} or ${DATASETNAME} or ${RUNRANGE}" >> /dev/stderr
 	exit 1
     fi
-    USER_REMOTE_DIR=$1/${ENERGY}/${TYPE}
+    USER_REMOTE_DIR=$1/louie/${ENERGY}/${TYPE}
     if [ -n "${TAG}" ];then USER_REMOTE_DIR=$USER_REMOTE_DIR/${TAG}; fi
     USER_REMOTE_DIR=$USER_REMOTE_DIR/${DATASETNAME}/${RUNRANGE}
     if [ -n "${JSONNAME}" ];then USER_REMOTE_DIR=$USER_REMOTE_DIR/${JSONNAME}; fi
@@ -144,5 +144,5 @@ setUserRemoteDirAlcareco(){
 	echo "                       ${ENERGY} or ${DATASETNAME} or ${RUNRANGE}" >> /dev/stderr
 	exit 1
     fi
-    USER_REMOTE_DIR=$1/${ENERGY}/${DATASETNAME}/${RUNRANGE}
+    USER_REMOTE_DIR=$1/louie/${ENERGY}/${DATASETNAME}/${RUNRANGE}
 }

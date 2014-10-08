@@ -8,7 +8,7 @@ USEPARENT=0
 SCHEDULER=caf
 USESERVER=1
 TYPE=ALCARECO
-LUMIS_PER_JOBS=200  # 4000 for ZSkim events is good, WSkim events /=4, SingleElectron /=10
+LUMIS_PER_JOBS=50  # 4000 for ZSkim events is good, WSkim events /=4, SingleElectron /=10
 EVENTS_PER_JOB=50000
 BLACKLIST=T2_EE_Estonia
 CREATE=yes
@@ -180,8 +180,8 @@ setStoragePath $STORAGE_ELEMENT $SCHEDULER
 
 if [ -z "${CHECK}" ];then checkRelease ${DATASETPATH}; fi
 
-USER_REMOTE_DIR=$USER_REMOTE_DIR_BASE/${ENERGY}/${DATASETNAME}/${RUNRANGE:-allRange}
-UI_WORKING_DIR=prod_alcareco/${DATASETNAME}/${RUNRANGE}
+USER_REMOTE_DIR=$USER_REMOTE_DIR_BASE/louie/${ENERGY}/${DATASETNAME}/${RUNRANGE:-allRange}
+UI_WORKING_DIR=prod_alcareco/louie/${DATASETNAME}/${RUNRANGE}
 
 if [ "$RUNRANGE" == "allRange" -o "`echo $RUNRANGE |grep -c -P '[0-9]+-[0-9]+'`" == "0" ];then
     unset RUNRANGE

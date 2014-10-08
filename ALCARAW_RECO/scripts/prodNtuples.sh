@@ -97,7 +97,7 @@ do
 
  	--type) TYPE=$2; shift;
 	    case $TYPE in 
-		alcareco | ALCARECO)
+				alcareco | ALCARECO)
 		    if [ "${isMC}" == "1" ]; then 
 			TYPE=ALCARECOSIM; 
 		    else
@@ -150,7 +150,7 @@ do
     shift
 done
 
-
+echo "LOUIE" $FILELIST
 if [ -z "$DATASETNAME" ];then 
     echo "[ERROR] DATASETNAME not defined" >> /dev/stderr
     usage >> /dev/stderr
@@ -184,8 +184,7 @@ fi
 
 #Setting the ENERGY variable
 setEnergy $DATASETPATH
-
-
+echo $DATASETPATH
 if [ "${TYPE}" != "ALCARERECO" -a "${TYPE}" != "ALCARAW" ];then
     ORIGIN_REMOTE_DIR_BASE=`echo ${ORIGIN_REMOTE_DIR_BASE} | sed 's|alcaraw|alcareco|g'`
 elif [ "${TYPE}" != "alcarereco" ];then
@@ -211,6 +210,7 @@ fi
 options="-d ${DATASETPATH} -n ${DATASETNAME} -r ${RUNRANGE} --remote_dir ${ORIGIN_REMOTE_DIR_BASE}"
 if [ -n "${TAGFILE}" ];then options="$options -t ${TAGFILE}"; fi
 
+echo "${ORIGIN_REMOTE_DIR_BASE}"
 case ${ORIGIN_REMOTE_DIR_BASE} in
     database)
 	FILELIST=""
@@ -272,12 +272,20 @@ setStoragePath $STORAGE_ELEMENT $SCHEDULER in
 
 UI_WORKING_DIR=$UI_WORKING_DIR/${TYPE}/${TAG}/${DATASETNAME}/${RUNRANGE}/${JSONNAME}/${EXTRANAME}
 
-USER_REMOTE_DIR=$USER_REMOTE_DIR_BASE/${ENERGY}/${TYPE}
+USER_REMOTE_DIR=$USER_REMOTE_DIR_BASE/louie/${ENERGY}/${TYPE}
 if [ -n "${TAG}" ];then USER_REMOTE_DIR=$USER_REMOTE_DIR/${TAG}; fi
 USER_REMOTE_DIR=$USER_REMOTE_DIR/${DATASETNAME}/${RUNRANGE}
 if [ -n "${JSONNAME}" ];then USER_REMOTE_DIR=$USER_REMOTE_DIR/${JSONNAME}; fi
 if [ -n "${EXTRANAME}" ];then USER_REMOTE_DIR=$USER_REMOTE_DIR/${EXTRANAME}; fi
 USER_REMOTE_DIR=$USER_REMOTE_DIR/unmerged
+
+echo $UI_WORKING_DIR
+echo $USER_REMOTE_DIR
+echo $DATASETPATH
+echo $ORIGIN_REMOTE_DIR_BASE
+echo $UI_WORKING_DIR
+echo $FILELIST
+
 
 
 

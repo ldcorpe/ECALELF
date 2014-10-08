@@ -1,5 +1,10 @@
+#ifndef EVENT_CLASS_CC
+#define EVENT_CLASS_CC
+#include "../extra/event_class.cc"
+#endif
+
 #include "../interface/addBranch_class.hh"
-#include "event_class.cc"
+
 #include "../interface/ElectronCategory_class.hh"
 #include <TTreeFormula.h>
 #include <TLorentzVector.h>
@@ -7,7 +12,8 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "../../../DataFormats/Math/interface/deltaPhi.h"
-#include <iostream> 
+#include <iostream>
+#include <fstream>
 
 #include "TROOT.h"
 //#define DEBUG
@@ -496,6 +502,9 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 	Int_t runNumber2=-1;
 	Int_t eventNumber1=-1;
 	Int_t eventNumber2=-1;
+	Int_t lumiBlock1=-1;
+	Int_t lumiBlock2=-1;
+	eventNumber2--;
 	Float_t         phiSCEle1[2];
 	Float_t         etaSCEle1[2];
 	Float_t         phiSCEle2[2];
@@ -507,10 +516,14 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 	Int_t eventNo2;
 	Float_t PtEle1[2];
 	Float_t PtEle2[2];
+	Float_t energySCEle1[2];
+	Float_t energySCEle2[2];
+//	Float_t invMass =0;
+int time =0;
 
 	// Declare limit values of delta eta and phi to call a match
-	Float_t deltaEtaLim=0.3;
-	Float_t deltaPhiLim=0.3;
+	Float_t deltaEtaLim=0.01;
+	Float_t deltaPhiLim=0.05;
 
 	// Declare vairables to fill in newtree
 	Int_t entryNumber2;
@@ -519,25 +532,42 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 	Int_t counter_reg=0;
 	Int_t counter_inv=0;
 	Int_t counter_flop=0;
+	Int_t counter_err=0;
+	Int_t counter_tot=0;
+	Int_t counter_special=0;
+//	ofstream missingEvents;
+//	missingEvents.open("missingEvents.txt");
+ofstream testEvent;
+testEvent.open("testEvent.txt");
+
 
 	// Set Status of all branches to 0, and then only set those used to 1
 	originalChain->SetBranchStatus("*",0);
 	secondChain->SetBranchStatus("*",0);
 
 	originalChain->SetBranchStatus("runNumber", 1);
+	originalChain->SetBranchStatus("lumiBlock", 1);
+	originalChain->SetBranchStatus("runTime", 1);
 	originalChain->SetBranchStatus("eventNumber", 1);
 	originalChain->SetBranchStatus("etaSCEle", 1);
 	originalChain->SetBranchStatus("phiSCEle", 1);
 	originalChain->SetBranchStatus("PtEle", 1);
+	originalChain->SetBranchStatus("energySCEle", 1);
+//	originalChain->SetBranchStatus("invMass", 1);
+	originalChain->SetBranchStatus("runTime", 1);
+	originalChain->SetBranchStatus("lumiBlock", 1);
 	secondChain->SetBranchStatus("runNumber", 1);
 	secondChain->SetBranchStatus("eventNumber", 1);
 	secondChain->SetBranchStatus("etaSCEle", 1);
 	secondChain->SetBranchStatus("phiSCEle", 1);
 	secondChain->SetBranchStatus("PtEle", 1);
-
+	secondChain->SetBranchStatus("energySCEle", 1);
 	// Set Branch Addresses
 	originalChain->SetBranchAddress("runNumber", &runNumber1);
+	originalChain->SetBranchAddress("lumiBlock", &lumiBlock1);
+	originalChain->SetBranchAddress("runTime", &time);
 	secondChain->SetBranchAddress("runNumber", &runNumber2);
+	secondChain->SetBranchAddress("lumiBlock", &lumiBlock2);
 	originalChain->SetBranchAddress("eventNumber", &eventNumber1);
 	secondChain->SetBranchAddress("eventNumber", &eventNo2);
 	originalChain->SetBranchAddress("etaSCEle", &etaSCEle1);
@@ -546,6 +576,9 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 	secondChain->SetBranchAddress("phiSCEle", &phiSCEle2);
 	originalChain->SetBranchAddress("PtEle", &PtEle1);
 	secondChain->SetBranchAddress("PtEle", &PtEle2);
+	originalChain->SetBranchAddress("energySCEle", &energySCEle1);
+	secondChain->SetBranchAddress("energySCEle", &energySCEle2);
+//	secondChain->SetBranchAddress("invMass", &invMass);
 
 	std::cout << "branch addresses set" << std::endl;
 
@@ -554,55 +587,114 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 	newtree->Branch("eleIndex",&eleIndex,"eleIndex[2]/I");
 
 	// Debug Histograms
-	TH2F *debug_spatial = new TH2F("spatial","spatial",50,-2.5,2.5,32,-3.2,3.2);
-	TH1F *debug_pT = new TH1F("pT","pT",100,-100,100);
+//	TH2F *debug_spatial = new TH2F("spatial","spatial",50,-2.5,2.5,32,-3.2,3.2);
+	//TH1F *debug_mee = new TH1F("mee","mee",200,0,180);
+	TH1F *debug_time = new TH1F("mee","mee",1000,1333500000,1337000000);
+	TH1F *debug_time_normal = new TH1F("mee2","mee2",1000,1333500000,1337000000);
+	debug_time->SetLineColor(kRed);
 
 	// declare vector used to store positions of possible matches in second tree
 	std::multimap<event_class, Long64_t> myMap;
 
 	// Fill this vector with all possible psoitions
-	for (Long64_t j=0 ; j<secondChain->GetEntries() ; j++)
+	for (Long64_t j=0 ; j<
+
+			secondChain->GetEntries() 
+			//1000
+			; j++)
 	{
 		secondChain->GetEntry(j);
 		event_class event(runNumber2,eventNo2);
 		myMap.insert(std::pair<event_class,Long64_t>(event,j));
+		
+	std::cout << "mutlimap fill. run " << runNumber2 <<", lumi "<< lumiBlock2 << ", ev " << eventNo2 << ", entry " << j << " | check " << event._runNumber << " " << event._eventNumber << std::endl;
 	}
 
-	std::cout << "second tree entries vector done" << std::endl;
+
+	std::cout << "second tree entries vector done. Entries=" <<secondChain->GetEntries() << std::endl;
+	/*for(std::multimap<event_class, Long64_t>::iterator subLoop=myMap.begin(); subLoop != myMap.end() ; subLoop++)
+		{
+
+		std::cout << subLoop->first._runNumber<< " " << subLoop->first._eventNumber << " " << subLoop->second << std::endl;
+		}*/
+
 
 	// begin main "Heavy" loop over original chain entries
 	for( Long64_t heavyLoop =0 ; heavyLoop < 
 
-			originalChain->GetEntries()
+		originalChain->GetEntries()
+		//SIZE
+	//	10000
 
 			; heavyLoop++)
 	{
+
 		originalChain->GetEntry(heavyLoop);
+		std::cout << "	Search: run "<< runNumber1 << ", lumi " << lumiBlock1 << ", ev " << eventNumber1 << ", key matches: ";
+		if(energySCEle1[0]/cosh(etaSCEle1[0]) < 1 ||  energySCEle1[1]/cosh(etaSCEle1[1])  < 1){ std::cout << "low pt " << std::endl; continue;}
 
 		// Intialise variables for each step in the heavy loop
 		entryNumber2=-1;// will remain -1 unless match is found
 		eleIndex[0]=-1;
 		eleIndex[1]=-1;
 		// progress tracker spits out to screen (useful for large number of events)
-		if(heavyLoop % 10000 ==0)
+/*		if(heavyLoop % 10000 ==0)
 		{
 			std::cout << std::endl << heavyLoop <<" / "<< originalChain->GetEntries() << std::endl;
-			std::cout << heavyLoop <<" / "<< myMap.size()<< std::endl;
-		}
-
+			//		std::cout << heavyLoop <<" / "<< myMap.size()<< std::endl;
+			std::cout << 100* (Float_t)counter_err/counter_tot << std::endl;
+			//	counter_err=0;
+			//	counter_tot=0;
+		}*/
+		counter_tot++;
 		// Begin subloop over second tree events. Loops over remaining available positions in second tree (using iterator)
-
 		event_class event1(runNumber1,eventNumber1);
 		std::pair <std::multimap<event_class,Long64_t>::iterator, std::multimap<event_class,Long64_t>::iterator> range;
 		range = myMap.equal_range(event1);
+		//		std::cout << runNumber1 << " " << eventNumber1 <<  " " << etaSCEle1[0] <<" " << etaSCEle1[1] <<" "<< PtEle1[0] << " " <<PtEle1[1] <<std::endl;
+		//		std::cout << runNumber1<< " " << eventNumber1 << std::endl;
+			//		std::cout << range.first->first._runNumber << " " <<range.first->first._eventNumber<< " "<< range.first->second <<  std::endl;
+			//		std::cout << range.second->first._runNumber << " " <<range.second->first._eventNumber<< " " << range.second->second <<  std::endl;
+					std::cout << myMap.count(event1) << std::endl;
 
 		//	std::cout << heavyLoop<< " - run: " << runNumber1 << "event: "<<eventNumber1 << std::endl; 
 		//	std::cout << "heavyLoop: " <<  myMap.count(event1) <<" potential matches" <<std::endl;
 
-		for (std::multimap<event_class, Long64_t>::iterator subLoop=range.first; subLoop !=range.second ; subLoop++)
+		Int_t  special_switch=0;
+		if(myMap.count(event1)==0)
+		{
+
+
+			testEvent<<"	"<<runNumber1 << "	"<< eventNumber1  <<  "	"<< lumiBlock1 <<"	"<< etaSCEle1[0] << "	"<< phiSCEle1[0] << std::endl;
+
+			//		range.first=myMap.begin();
+			//		range.second=myMap.end();
+			special_switch=1;
+			counter_special++;
+		//	debug_mee->Fill(invMass);
+			debug_time->Fill(time);
+
+	//		cout << time << endl;
+
+		//	missingEvents << runNumber1 << "	"<< eventNumber1 << std::endl;
+			//		std::cout << heavyLoop<< std::endl << std::endl;
+			//		std::cout << "Pt : " <<PtEle1[0] << " " <<PtEle1[1] << std::endl;
+			//		std::cout << "Eta: " <<etaSCEle1[0] << " " <<etaSCEle1[1] << std::endl;
+			//		std::cout << "Phi: " <<phiSCEle1[0] << " " <<phiSCEle1[1] <<std::endl <<std::endl;
+			//		std::cout << "Et: " <<energySCEle1[0]/cosh(etaSCEle1[0]) << " " <<energySCEle1[1]/cosh(etaSCEle1[1]) <<std::endl <<std::endl;
+		}
+		else
+		{
+			debug_time_normal->Fill(time);
+
+		if(heavyLoop % 10000 ==0){cout << time << endl;}
+		}
+
+		for (std::multimap<event_class, Long64_t>::iterator subLoop=range.first; subLoop !=range.second; subLoop++)
 		{
 			secondChain->GetEntry(subLoop->second);
-			if(PtEle2[0]==0 || PtEle2[1]==0) { counter++ ;continue;}
+
+			if(PtEle2[0] ==0 ||  PtEle2[1]==0) { counter++ ;continue;}
 
 
 			// DEBUG
@@ -650,6 +742,19 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 				entryNumber2 = subLoop->second;
 				counter_reg++;
 				myMap.erase(subLoop);
+				counter_flop++;
+				if(special_switch==1)
+				{
+					//			std::cout << "STRANGE event " << heavyLoop << std::endl;
+					//		std::cout << runNumber1 << " " << eventNumber1 <<  " " << etaSCEle1[0] <<" " << etaSCEle1[1] <<" "<< PtEle1[0] << " " <<PtEle1[1] <<std::endl;
+					//			std::cout <<subLoop->first._runNumber << " " << subLoop->first._eventNumber <<  " " << etaSCEle2[0] <<" " << etaSCEle2[1] <<" "<< PtEle2[0] << " " <<PtEle2[1] << std::endl;
+		//			std::cout << heavyLoop<< std::endl << std::endl;
+			//		std::cout << "Pt : " <<PtEle1[0] << " " <<PtEle1[1] << std::endl;
+			//		std::cout << "Eta: " <<etaSCEle1[0] << " " <<etaSCEle1[1] << std::endl;
+			//		std::cout << "Phi: " <<phiSCEle1[0] << " " <<phiSCEle1[1] <<std::endl <<std::endl;
+			//		std::cout << "Et: " <<energySCEle1[0]/cosh(etaSCEle1[0]) << " " <<energySCEle1[1]/cosh(etaSCEle1[1]) <<std::endl <<std::endl;
+				}
+				special_switch=0;
 				break;
 
 				//			std::cout << heavyLoop << " | " << subLoop->second << std::endl;
@@ -669,6 +774,20 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 				entryNumber2 = subLoop->second;
 				counter_inv++;
 				myMap.erase(subLoop);
+				counter_flop++;
+				if(special_switch==1)
+				{
+					//		std::cout << std::endl<< "STRANGE event " << heavyLoop << std::endl;
+					//	std::cout << runNumber1 << " " << eventNumber1 <<  " " << etaSCEle1[0] <<" " << etaSCEle1[1] <<" "<< PtEle1[0] << " " <<PtEle1[1] <<std::endl;
+					//	std::cout <<subLoop->first._runNumber << " " << subLoop->first._eventNumber <<  " " << etaSCEle2[1] <<" " << etaSCEle2[0] <<" "<< PtEle2[1] << " " <<PtEle2[0] << std::endl;
+			//		std::cout << heavyLoop<< std::endl << std::endl;
+			//		std::cout << "Pt : " <<PtEle1[0] << " " <<PtEle1[1] << std::endl;
+			//		std::cout << "Eta: " <<etaSCEle1[0] << " " <<etaSCEle1[1] << std::endl;
+			//		std::cout << "Phi: " <<phiSCEle1[0] << " " <<phiSCEle1[1] <<std::endl <<std::endl;
+				}
+
+		//	okEvents << runNumber1 << "	"<< eventNumber1 << std::endl;
+				special_switch=0;
 				break;
 				//std::cout << heavyLoop << " | " << *subLoop << std::endl;
 				//std::cout << "Inverted "<<heavyLoop << endl; 
@@ -684,14 +803,14 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 
 			//	entryNumber2 = subLoop->second;
 			//	break;
-			counter_flop++;
+
 		}
 		// DEBUG output
 		if (entryNumber2==-1)
 		{
-			//	std::cout << "Pt : " <<PtEle1[0] << " " <<PtEle1[1] << std::endl;
-			//	std::cout << "Eta: " <<etaSCEle1[0] << " " <<etaSCEle1[1] << std::endl;
-			//	std::cout << "Phi: " <<phiSCEle1[0] << " " <<phiSCEle1[1] <<std::endl <<std::endl;
+			counter_err++;
+
+//			missingEvents << runNumber1 << "	"<< eventNumber1 << std::endl;
 			//	if (fabs(etaSCEle1[0])<2 && fabs(etaSCEle1[1])<2)
 			/*		{
 						debug_spatial->Fill(etaSCEle1[0],phiSCEle1[0]);
@@ -735,6 +854,8 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 
 
 			}*/
+	//		cout << " 0 pt : " <<counter << endl;
+			counter=0;
 		}
 
 		// Fill the new tree with relevant branch values.
@@ -745,15 +866,27 @@ TTree* addBranch_class::AddBranch_Map(TChain *originalChain, TChain *secondChain
 
 	gROOT->SetBatch(kFALSE);
 	TCanvas *debug_t = new TCanvas("debug_t","debug_t",800,400);
-	debug_spatial->Draw("COLZ");
-	debug_t->SaveAs(BranchName+"spatial.pdf");
-	debug_pT->Draw();
-	debug_t->SaveAs(BranchName+"pT.pdf");
-	std::cout << counter << std::endl;
-	std::cout << counter_reg << std::endl;
-	std::cout << counter_inv << std::endl;
-	std::cout << counter_flop << std::endl;
+//	debug_t->Divide(2,1);
+//	debug_t->cd(1);
+//	debug_spatial->Draw("COLZ");
+//	debug_t->SaveAs(BranchName+"spatial.pdf");
+//	debug_mee->Draw();
+debug_time->Draw();
+//debug_t->cd(2);
+debug_time_normal->Draw("same");
+	debug_t->SaveAs(BranchName+"_time.pdf");
+//	std::cout << "Total entries : "<< counter << std::endl;
+	std::cout<< "Regular matches : " << counter_reg << std::endl;
+	std::cout << "Inverted matches : "<< counter_inv << std::endl;
+	std::cout << "Total matches : " << counter_flop << std::endl;
+	std::cout << "Total entires : " << counter_tot << std::endl;
+	std::cout << "Event Missing : " << counter_special << std::endl;
 
+	float percent = 100*1*counter_err/counter_tot;
+	float percent_special = 100*counter_special/counter_tot;
+
+	std::cout << "ERRORS: "<<counter_err<< " - "<< percent << " percent"<< std:: endl;
+	std::cout << "Special: "<<counter_special<< " - "<< percent_special << " percent"<< std:: endl;
 	return newtree;
 }
 
