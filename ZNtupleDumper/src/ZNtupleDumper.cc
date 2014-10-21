@@ -722,7 +722,7 @@ void ZNtupleDumper::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	  if((mass < 55 || mass > 125)) continue;
 	  
 	  doFill=true;
-	  if(eventType==UNKNWON) eventType=ZEE;
+	  if(eventType==UNKNOWN) eventType=ZEE;
 	  TreeSetDiElectronVar(*eleIter1, *eleIter2);
 	  
 	  if(doExtraCalibTree){
@@ -737,8 +737,8 @@ void ZNtupleDumper::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	  }
 	}
 
-	if(electronsHandle->size() < NELE &&  eventType = SINGLEELE);
-	
+	if(electronsHandle->size() < NELE &&  eventType == SINGLEELE);
+{	
 	doFill=true;	
 	TreeSetSingleElectronVar(*eleIter1, 0);  //fill first electron 
 	TreeSetSingleElectronVar(*eleIter1, -1); // fill fake second electron
@@ -751,7 +751,7 @@ void ZNtupleDumper::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	  TreeSetEleIDVar(*eleIter1, 0);
 	  TreeSetEleIDVar(*eleIter1, -1);
 	}
-
+}
       }
     }
   } 
