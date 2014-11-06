@@ -410,12 +410,14 @@ OUTFILES=`echo ${OUTFILES} | sed 's|,| |'`
 if [ -n "${CHECK}" ];then
     resubmitCrab.sh -u ${UI_WORKING_DIR}
     if [ ! -e "${UI_WORKING_DIR}/res/finished" ];then
+   # if [0 ];then
 	#echo $dir >> tmp/$TAG.log 
 	echo "[STATUS] Unfinished ${UI_WORKING_DIR}"
     else
 	if [ "${isMC}" == "1" ];then
 	    OUTFILES="$OUTFILES PUDumper"
 	fi
+	echo $OUTFILES
 	for file in $OUTFILES
 	  do
 	  file=`basename $file .root`
