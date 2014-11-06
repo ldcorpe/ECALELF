@@ -1301,6 +1301,7 @@ void ZNtupleDumper::TreeSetSingleElectronVar(const pat::Electron& electron1, int
 
 	EcalRecHitCollection::const_iterator seedRecHit = recHits->find(seedDetId) ;
 	assert(seedRecHit!=recHits->end()); // DEBUG
+	
 	seedEnergySCEle[index]=seedRecHit->energy();
 	if(isMC) seedLCSCEle[index]=-10;
 	else seedLCSCEle[index]=laserHandle_->getLaserCorrection(seedDetId,runTime_);
@@ -1479,7 +1480,6 @@ void ZNtupleDumper::TreeSetSingleElectronVar(const reco::SuperCluster& electron1
 
 	EcalRecHitCollection::const_iterator seedRecHit = recHitsEE->find(seedDetId) ;
 	assert(seedRecHit!=recHitsEE->end());
-	
 	seedEnergySCEle[index]=seedRecHit->energy();
 	if(seedRecHit->checkFlag(EcalRecHit::kHasSwitchToGain6)) gainEle[index]=1;
 	else if(seedRecHit->checkFlag(EcalRecHit::kHasSwitchToGain1)) gainEle[index]=2;
