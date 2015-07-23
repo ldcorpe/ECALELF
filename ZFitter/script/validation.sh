@@ -10,13 +10,13 @@ runRangesFile=data/runRanges/monitoring.dat
 baseDir=test
 xVar=runNumber
 pdateOnly="--updateOnly"
-GITTAG="ldcorpe:prod-Cal-Uncal-lctag-74X-lcdataRun2-lcPrompt-lcv0-lcCMSSW747-lcdate-220715" #should eventually get this automatically from file or option
-GLOBALTAG="74X-lcdataRun2-lcPrompt-lcv0" #should eventually get this automatically from file or option; nb -lc is repalced for _
+GITTAG="ldcorpe:prod-Cal-Uncal_tag-74X_dataRun2_Prompt_v0_CMSSW747_date-220715" #should eventually get this automatically from file or option
+GLOBALTAG="74X_dataRun2_Prompt_v0" #should eventually get this automatically from file or option; nb -lc is repalced for _
 
 # VALIDATION=y
 # STABILITY=y
 # SLIDES=y
-
+echo "DEBUG LCi 0"
 usage(){
     echo "`basename $0` [options]" 
     echo "----- optional paramters"
@@ -32,6 +32,7 @@ usage(){
     echo " --noPU            "
     echo " --floatTails            "
     echo " --baseDir arg (=${baseDir})  base directory for outputs"
+    echo " --gitTag arg (=${GITTAG})  base directory for outputs"
     echo " --rereco arg  name of the tag used fro the rereco"
 }
 desc(){
@@ -45,7 +46,7 @@ desc(){
 
 
 # options may be followed by one colon to indicate they have a required argument
-if ! options=$(getopt -u -o hf: -l help,runRangesFile:,selection:,invMass_var:,puName:,dataName:,baseDir:,rereco:,validation,stability,slides,noPU,floatTails -- "$@")
+if ! options=$(getopt -u -o hf: -l help,runRangesFile:,selection:,gitTag:,invMass_var:,puName:,dataName:,baseDir:,rereco:,validation,stability,slides,noPU,floatTails -- "$@")
 then
     # something went wrong, getopt will put out an error message for us
     exit 1
@@ -63,6 +64,7 @@ do
 	--dataName) dataName=$2; shift;;
 	--runRangesFile) runRangesFile=$2; echo "[OPTION] runRangesFile = ${runRangesFile}"; shift;;
 	--baseDir) baseDir=$2; echo "[OPTION] baseDir = $baseDir"; shift;;
+	--gitTag) baseDir=$2; echo "[OPTION] baseDir = $GITTAG"; shift;;
 	--rereco) rereco=$2; echo "[OPTION] rereco = $rereco"; shift;;
 	--validation) VALIDATION=y;;
 	--stability)  STABILITY=y;;
@@ -111,6 +113,7 @@ esac
 
 
 
+echo "DEBUG LCi 1"
 if [ ! -r "${configFile}" ];then
     echo "[ERROR] configFile ${configFile} not found or not readable" >> /dev/stderr
     exit 1
@@ -166,15 +169,22 @@ if [ ! -e "${outDirData}/log" ];then mkdir ${outDirData}/log -p; fi
 # keep track of the MC used to take the tail parameter for data
 echo "$outDirMC" > $outDirData/whichMC.txt
 
+echo "DEBUG LCi 1.1"
 if [ -n "$VALIDATION" ];then
     mcSample=${mcName}
     dataSample=${dataName}
     regionFile=data/regions/validation.dat
-    ./bin/ZFitter.exe -f ${configFile} --regionsFile ${regionFile}  --invMass_var ${invMass_var} \
+    #./bin/ZFitter.exe -f ${configFile} --regionsFile ${regionFile}  --invMass_var ${invMass_var} \
+echo "
+    ZFitter.exe -f ${configFile} --regionsFile ${regionFile}  --invMass_var ${invMass_var} \
+	--outDirFitResMC=${outDirMC}/fitres --outDirFitResData=${outDirData}/fitres \
+	--outDirImgMC=${outDirMC}/img   --outDirImgData=${outDirData}/img  --commonCut $commonCut $NOPUOPT $FLOATTAILSOPT > ${outDirData}/log/validation.log||  exit 1"
+ZFitter.exe -f ${configFile} --regionsFile ${regionFile}  --invMass_var ${invMass_var} \
 	--outDirFitResMC=${outDirMC}/fitres --outDirFitResData=${outDirData}/fitres \
 	--outDirImgMC=${outDirMC}/img   --outDirImgData=${outDirData}/img  --commonCut $commonCut $NOPUOPT $FLOATTAILSOPT > ${outDirData}/log/validation.log||  exit 1
 
 
+echo "DEBUG LC 2"
 
     ./script/makeTable.sh --regionsFile ${regionFile}  --commonCut=${commonCut} \
 	--outDirFitResMC=${outDirMC}/fitres --outDirFitResData=${outDirData}/fitres \
@@ -244,6 +254,10 @@ if [ -n "$SLIDES" ];then
 	mcNtuples=`cut -d ":" -f2 tmp/mc.txt`
 	echo $CMSSW_VERSION >  tmp/out.txt
 	cmssw_version=`sed "s|_|-lc|g" tmp/out.txt`
+	echo $GITTAG >  tmp/out.txt
+	GITTAG=`sed "s|_|-lc|g" tmp/out.txt`
+	echo $GLOBALTAG >  tmp/out.txt
+	GLOBALTAG=`sed "s|_|-lc|g" tmp/out.txt`
 	echo $invMass_var >  tmp/out.txt
 	invmass_var=`sed "s|_|-lc|g" tmp/out.txt`
 	echo $invmass_var
@@ -266,14 +280,20 @@ if [ -n "$SLIDES" ];then
 	-e "s/std. SC energy/$rerecoTag $invmass_var/g" \
   -e "s/0puReweight/Reweight using nPV distributions in data and MC/g" \
 	-e "s/0json/$json/g" tmp/validation-${invMass_var}-slides.tex > tmp/tmp.tex 
+
 	
 	sed -e "s|!|\/|g" tmp/tmp.tex >tmp/tmp.1.tex
 	sed -e "s|13TeV|13TeV |g" tmp/tmp.1.tex >tmp/tmp.2.tex
 	sed -e "s|-lc|\\\_|g" tmp/tmp.2.tex > tmp/validation-${invMass_var}-slides.tex
+	
+	sed -e "s/std. SC energy/$rerecoTag $invmass_var/g" tmp/validation-${invMass_var}-intro_slide.tex > tmp/tmp.tex
+	cp tmp/tmp.tex tmp/validation-${invMass_var}-intro_slide.tex
+
 	#	rm tmp/tmp.tex
-    pdflatex tmp/validation-${invMass_var}-slides.tex
+#    pdflatex tmp/validation-${invMass_var}-slides.tex
     cp tmp/validation-${invMass_var}-*.tex $baseDir/slides/. 
-    cp validation-${invMass_var}-slides.pdf  $baseDir/slides/validation-${invMass_var}-slides-$rerecoTag.pdf
+    cp tmp/validation-${invMass_var}-*.tex $baseDir/slides/. 
+  #  cp validation-${invMass_var}-slides.pdf  slides/validation-${invMass_var}-slides-$baseDir-$FLOATTAILS.pdf
 	fi
 		
 fi

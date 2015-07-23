@@ -218,6 +218,8 @@ std::string energyBranchNameFromInvMassName(std::string invMass_var){
   else if(invMass_var=="invMass_regrCorr_egamma") energyBranchName = "energyEle_regrCorr_egamma";
   else if(invMass_var=="invMass_SC") energyBranchName = "energySCEle";
   else if(invMass_var=="invMass_SC_corr") energyBranchName = "energySCEle_corr";
+  else if(invMass_var=="invMass_rawSC") energyBranchName = "rawEnergySCEle";
+
   else if(invMass_var=="invMass_SC_regrCorrSemiParV4_ele") energyBranchName = "energySCEle_regrCorrSemiParV4_ele";
   else if(invMass_var=="invMass_SC_regrCorrSemiParV4_pho") energyBranchName = "energySCEle_regrCorrSemiParV4_pho";
   else if(invMass_var=="invMass_SC_regrCorrSemiParV5_ele") energyBranchName = "energySCEle_regrCorrSemiParV5_ele";
@@ -563,7 +565,7 @@ int main(int argc, char **argv) {
      && !vm.count("saveRootMacro") 
      && !vm.count("EOverPCalib") 
      ) return 1;
-
+		std::cout << "[DEBUG LC ] PU FILE NAME " << dataPUFileName << std::endl;
   if(!dataPUFileName.empty()) dataPUFileNameVec.push_back(dataPUFileName.c_str());
   if(!mcPUFileName.empty()) mcPUFileNameVec.push_back(mcPUFileName.c_str());
   //============================== Reading the config file with the list of chains
@@ -820,7 +822,7 @@ int main(int argc, char **argv) {
 	TChain *ch = (tag_chain_itr->second.find("selected"))->second;
 	if((tag_chain_itr->second.count("pileup"))) continue;
 	TString treeName="pileup";
-	TString filename="tmp/mcPUtree"+tag_chain_itr->first+".root";
+	TString filename=outDirFitResMC+"tmp/mcPUtree"+tag_chain_itr->first+".root";
 	TFile f(filename,"recreate");
 	if(f.IsOpen()){
 	  f.cd();
@@ -1644,6 +1646,8 @@ int main(int argc, char **argv) {
     fitter._isDataUnbinned=true;
     fitter._isDataSumW2=true;
   }
+    fitter._isDataUnbinned=true;
+    fitter._isDataSumW2=true;
 
   fitter._forceNewFit=vm.count("forceNewFit");
   //  fitter._initFitMC=true;

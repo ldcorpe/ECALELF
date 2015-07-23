@@ -8,7 +8,4 @@ RerecoGlobalTag = cms.ESSource("PoolDBESSource",
                                CondDBSetup,
                                connect = cms.string('frontier://FrontierProd/CMS_CONDITIONS'),
                                globaltag = cms.string('74X_dataRun2_Prompt_v0'),
-
                                               )
-                                     ),
-                               )

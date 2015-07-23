@@ -42,6 +42,9 @@ fi
 ### sanity checks
 
 case $COLUMN in
+		2)
+	columnName="nEvents"
+	;;
     3|4)
 	columnName="$\Delta m$"
 	;;
@@ -118,6 +121,10 @@ for file in $@
   tagName=`dirname $tagName`
   tagName=`dirname $tagName`
   tagName=`basename $tagName`
+	echo $tagName > tmp/lc.txt
+	sed -e "s|_| |g" -e "s|IC|IC |g" -e "s|un|un |g" -e "s|20| 20|g"	tmp/lc.txt > tmp/lc.1.txt
+	tagName=`cat tmp/lc.1.txt`
+	rm tmp/lc*txt
   echo ${columnName} > tmp/$index-data.tex
   echo "${tagName}" >> tmp/${index}-data.tex
   echo " " >> tmp/${index}-data.tex
