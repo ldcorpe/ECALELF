@@ -10,8 +10,8 @@ runRangesFile=data/runRanges/monitoring.dat
 baseDir=test
 xVar=runNumber
 pdateOnly="--updateOnly"
-GITTAG="lcorpe:topic-quickrereco-lcsh-fix-rebase" #should eventually get this automatically from file or option
-GLOBALTAG="74X-lcdataRun2-lcPrompt-lcv0" #should eventually get this automatically from file or option
+GITTAG="ldcorpe:prod-Cal-Uncal-lctag-74X-lcdataRun2-lcPrompt-lcv0-lcCMSSW747-lcdate-220715" #should eventually get this automatically from file or option
+GLOBALTAG="74X-lcdataRun2-lcPrompt-lcv0" #should eventually get this automatically from file or option; nb -lc is repalced for _
 
 # VALIDATION=y
 # STABILITY=y
