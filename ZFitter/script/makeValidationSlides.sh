@@ -157,8 +157,6 @@ case ${TYPE} in
 	    echo 
 	    exit 1
 	fi
-	$dataSample=2012D_75x_rereco
-	$mcName=DYJetsToLL_M-50_3TeV_amcatnloFXFXpythia8_Asympt50ns
 	validationIntroSlide
 	validationTableSlides
 	validationFitSlides

@@ -174,6 +174,7 @@ if [ -n "$VALIDATION" ];then
     mcSample=${mcName}
     dataSample=${dataName}
     regionFile=data/regions/validation.dat
+    #regionFile=data/regions/absEta.dat
     #./bin/ZFitter.exe -f ${configFile} --regionsFile ${regionFile}  --invMass_var ${invMass_var} \
 echo "
     ZFitter.exe -f ${configFile} --regionsFile ${regionFile}  --invMass_var ${invMass_var} \
