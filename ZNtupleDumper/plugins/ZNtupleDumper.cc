@@ -73,6 +73,7 @@
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 #include "DataFormats/EcalDetId/interface/EBDetId.h"
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
+#include "DataFormats/EcalDetId/interface/ESDetId.h"
 #include "DataFormats/CaloRecHit/interface/CaloID.h"
 
 #include "Geometry/CaloTopology/interface/CaloTopology.h"
@@ -183,6 +184,8 @@ private:
   edm::Handle< reco::PFMETCollection > metHandle;
   edm::Handle<edm::TriggerResults> triggerResultsHandle;
   edm::Handle<edm::TriggerResults> WZSkimResultsHandle;
+  edm::Handle<EcalRecHitCollection> ESRechitsHandle;
+
 
   //------------------------------ Input Tags
   // input tag for primary vertex
@@ -199,9 +202,9 @@ private:
 #else
   edm::InputTag recHitCollectionEBTAG;
   edm::InputTag recHitCollectionEETAG;
-  edm::InputTag recHitCollectionESTAG;
 #endif
 
+  edm::InputTag recHitCollectionESTAG;
   edm::InputTag EESuperClustersTAG;
   // input rho
   edm::InputTag rhoTAG;
@@ -452,9 +455,9 @@ ZNtupleDumper::ZNtupleDumper(const edm::ParameterSet& iConfig):
 #else
   recHitCollectionEBTAG(iConfig.getParameter<edm::InputTag>("recHitCollectionEB")),
   recHitCollectionEETAG(iConfig.getParameter<edm::InputTag>("recHitCollectionEE")),
-  recHitCollectionESTAG(iConfig.getParameter<edm::InputTag>("recHitCollectionES")),
 #endif
 
+  recHitCollectionESTAG(iConfig.getParameter<edm::InputTag>("recHitCollectionES")),
   EESuperClustersTAG(iConfig.getParameter<edm::InputTag>("EESuperClusterCollection")),
   rhoTAG(iConfig.getParameter<edm::InputTag>("rhoFastJet")),
   conversionsProducerTAG(iConfig.getParameter<edm::InputTag>("conversionCollection")),
@@ -627,7 +630,8 @@ void ZNtupleDumper::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   iEvent.getByLabel(BeamSpotTAG, bsHandle);
   iEvent.getByLabel(rhoTAG,rhoHandle);
   
-  iEvent.getByLabel(metTAG, metHandle); 
+  iEvent.getByLabel(metTAG, metHandle);
+	iEvent.getByLabel(recHitCollectionESTAG,ESRechitsHandle);
   //if(metHandle.isValid()==false) iEvent.getByType(metHandle);
   reco::PFMET met = ((*metHandle))[0]; /// \todo use corrected phi distribution
 
@@ -1882,7 +1886,6 @@ float ZNtupleDumper::GetESPlaneRawEnergy(const pat::Electron& electron, unsigned
 
     //std::vector< std::pair<DetId, float> > hitsAndFractions_ele = electron.hitsAndFractions();
    // auto hits_ele = electron.recHits();
-		float sumE=0.;
 		/*
 		//auto sc_rh = electron.superCluster()->seed().hitsAndFractions();
 		auto pfsc = (electron.pflowPreshowerClusters());
@@ -1909,29 +1912,27 @@ float ZNtupleDumper::GetESPlaneRawEnergy(const pat::Electron& electron, unsigned
 		
 		
 
-		float RawenergyP1 =0;
-		float RawenergyP2 =0;
-		float pfRawenergyP1=0;
-		float pfRawenergyP2=0;
+		float RawenergyPlane =0;
+		float pfRawenergyPlane=0;
 		for(auto iES = electron.superCluster()->preshowerClustersBegin(); iES != electron.superCluster()->preshowerClustersEnd(); ++iES){
 			const std::vector< std::pair<DetId, float> > hits = (*iES)->hitsAndFractions();
 			for(std::vector<std::pair<DetId,float> >::const_iterator rh = hits.begin(); rh!=hits.end(); ++rh){
 				//      std::cout << "print = " << (*iES)->printHitAndFraction(iCount);
 				//      ++iCount;
-				for(ESRecHitCollection::const_iterator esItr = thePreShowerRecHits->begin(); esItr != thePreShowerRecHits->end(); ++esItr){
+				for(ESRecHitCollection::const_iterator esItr = ESRechitsHandle->begin(); esItr != ESRechitsHandle->end(); ++esItr){
 					ESDetId rhid = ESDetId(esItr->id());
 					if(rhid != (*rh).first) continue;
-					//      std::cout << " ES energy = " << esItr->energy() << " pf energy = " << (*rh).second << std::endl;
-					if(rhid.plane() == planeIndex){
-						RawenergyP1 += esItr->energy();
-						pfRawenergyP1 += rh->second;
+			    // std::cout << " ES energy = " << esItr->energy() << " pf energy = " << (*rh).second << std::endl;
+					if((int) rhid.plane() == (int) planeIndex){
+						RawenergyPlane += esItr->energy();
+						pfRawenergyPlane += rh->second;
 					}
 				}
 			}
 		}
-
-
-		return sumE;
+			if (pfRawenergyPlane) ; // avoid compilation error for unused var
+		//std::cout << "LC DEBUG RawenergyPlane "<< RawenergyPlane << ", pfRawenergyPlane " << pfRawenergyPlane << std::endl; 
+		return RawenergyPlane;
 }
 
 //////////////
